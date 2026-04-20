@@ -93,21 +93,21 @@ class Header:
         """
         Output the original header name as it was captured initially.
         """
-        return self._name
+        pass
 
     @property
     def normalized_name(self) -> str:
         """
         Output header name but normalized, lower case and '-' character become '_'.
         """
-        return self._normalized_name
+        pass
 
     @property
     def pretty_name(self) -> str:
         """
         Output a prettified name of the header. The first letter capitalized on each word.
         """
-        return self._pretty_name
+        pass
 
     @property
     def content(self) -> str:
@@ -117,22 +117,18 @@ class Header:
         >>> header.content
         '33a64df551425fcc55e4d42a148795d9f25f89d4'
         """
-        # Unquote content if there is only one value/attribute in it. Like the ETag header.
-        if len(self.attrs) == 1:
-            return unquote(self._content)
-
-        return self._content
+        pass
 
     @property
     def unfolded_content(self) -> str:
         """Output unfolded associated content to the header. Meaning that every LF + n space(s) would be properly
         replaced."""
-        return unfold(self.content)
+        pass
 
     @property
     def comments(self) -> list[str]:
         """Retrieve comments in header content."""
-        return extract_comments(self.content)
+        pass
 
     def __lt__(self, other: object) -> bool:
         """
@@ -456,16 +452,7 @@ class Header:
         eg. Content-Type: application/json; charset=utf-8; format=origin
         Would output : ['application/json', 'charset', 'format']
         """
-        attrs: list[str] = []
-
-        if len(self._attrs) == 0:
-            return attrs
-
-        for i in range(0, len(self._attrs)):
-            attr, value = self._attrs[i]  # type: ignore
-            attrs.append(attr)
-
-        return attrs
+        pass
 
     @property
     def valued_attrs(self) -> list[str]:
@@ -476,24 +463,13 @@ class Header:
         eg. Content-Type: application/json; charset=utf-8; format=origin
         Would output : ['charset', 'format']
         """
-        attrs: list[str] = []
-
-        if len(self._attrs) == 0:
-            return attrs
-
-        for i in range(0, len(self._attrs)):
-            attr, value = self._attrs[i]  # type: ignore
-
-            if value is not None and attr not in attrs:
-                attrs.append(attr)
-
-        return attrs
+        pass
 
     def has(self, attr: str) -> bool:
         """
         Safely check if the current header has an attribute or adjective in it.
         """
-        return attr in self
+        pass
 
     def get(self, attr: str) -> str | list[str] | None:
         """
@@ -666,7 +642,7 @@ class Headers:
         """
         Safely check if header name is in headers.
         """
-        return header in self
+        pass
 
     def get(self, header: str) -> Header | list[Header] | None:
         """
@@ -704,14 +680,7 @@ class Headers:
         Be aware that it won't return a typing.KeysView.
         Also this method allows you to create a case sensitive dict.
         """
-        keys = list()
-
-        # I decided to go with this to conserve order of appearance in list.
-        for header in self:
-            if header.name not in keys:
-                keys.append(header.name)
-
-        return keys
+        pass
 
     def values(self) -> None:
         """
@@ -1016,7 +985,7 @@ class Headers:
         """
         Provide a JSON representation of Headers. JSON is by definition a string.
         """
-        return dumps(self.items())
+        pass
 
     def __bytes__(self) -> bytes:
         """
@@ -1153,8 +1122,7 @@ class Headers:
 
     def popitem(self) -> tuple[str, str]:
         """Pop the last header as a tuple (header name, header content)."""
-        header: Header = self.pop()  # type: ignore
-        return header.name, header.content
+        pass
 
     def __dir__(self) -> Iterable[str]:
         """
@@ -1217,13 +1185,7 @@ class Attributes:
 
     def keys(self) -> list[str]:
         """This method return a list of attribute name that have at least one value associated to them."""
-        keys: list[str] = []
-
-        for index, key, value in self:
-            if key not in keys and value is not None:
-                keys.append(key)
-
-        return keys
+        pass
 
     def __eq__(self, other: object) -> bool:
         """Verify if two instance of Attributes are equal. We don't care about ordering."""
@@ -1414,20 +1376,7 @@ class Attributes:
     @property
     def last_index(self) -> int | None:
         """Simply output the latest index used in attributes. Index start from zero."""
-        if len(self._bag) == 0:
-            return None
-
-        max_index: int = 0
-
-        for key in self._bag:
-            values, indexes = self._bag[key]
-
-            maximum_ind_key: int = max(indexes)
-
-            if maximum_ind_key > max_index:
-                max_index = maximum_ind_key
-
-        return max_index
+        pass
 
     def __len__(self) -> int:
         """The length of an Attributes instance is equal to the last index plus one. Not by keys() length."""

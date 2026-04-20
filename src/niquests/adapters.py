@@ -444,19 +444,7 @@ class HTTPAdapter(BaseAdapter):
         :param quic_cache_layer: Caching mutable mapping to remember QUIC capable endpoint.
         :param pool_kwargs: Extra keyword arguments used to initialize the Pool Manager.
         """
-        # save these values for pickling
-        self._pool_connections = connections
-        self._pool_maxsize = maxsize
-        self._pool_block = block
-        self._quic_cache_layer = quic_cache_layer
-
-        self.poolmanager = PoolManager(
-            num_pools=connections,
-            maxsize=maxsize,
-            block=block,
-            preemptive_quic_cache=quic_cache_layer,
-            **pool_kwargs,
-        )
+        pass
 
     def proxy_manager_for(self, proxy: str, **proxy_kwargs: typing.Any) -> ProxyManager:
         """Return urllib3 ProxyManager for the given proxy.
@@ -879,9 +867,7 @@ class HTTPAdapter(BaseAdapter):
             extension = wrap_extension_for_http(load_extension(scheme, implementation=implementation))()
 
         def early_response_hook(early_response: BaseHTTPResponse) -> None:
-            nonlocal on_early_response
-            assert on_early_response is not None
-            on_early_response(self.build_response(request, early_response))
+            pass
 
         try:
             resp_or_promise = conn.urlopen(  # type: ignore[call-overload,misc]
@@ -1015,48 +1001,7 @@ class HTTPAdapter(BaseAdapter):
 
                 def on_post_connection(conn_info: ConnectionInfo) -> None:
                     """This function will be called by urllib3.future just after establishing the connection."""
-                    nonlocal next_request, kwargs
-
-                    assert next_request is not None
-                    next_request.conn_info = conn_info
-
-                    if next_request.url and next_request.url.startswith("https://") and kwargs["verify"]:
-                        strict_ocsp_enabled: bool = os.environ.get("NIQUESTS_STRICT_OCSP", "0") != "0"
-
-                        if not strict_ocsp_enabled and self._revocation_configuration is not None:
-                            strict_ocsp_enabled = self._revocation_configuration.strict_mode
-
-                        if should_check_ocsp(conn_info, self._revocation_configuration):
-                            try:
-                                from .extensions.revocation._ocsp import verify as ocsp_verify
-                            except ImportError:
-                                pass
-                            else:
-                                ocsp_verify(
-                                    next_request,
-                                    strict_ocsp_enabled,
-                                    0.2 if not strict_ocsp_enabled else 1.0,
-                                    kwargs["proxies"],
-                                    self._resolver if isinstance(self._resolver, BaseResolver) else None,
-                                    self._happy_eyeballs,
-                                    cache=self._ocsp_cache,
-                                )
-
-                        if should_check_crl(conn_info, self._revocation_configuration):
-                            try:
-                                from .extensions.revocation._crl import verify as crl_verify
-                            except ImportError:
-                                pass
-                            else:
-                                crl_verify(
-                                    next_request,
-                                    strict_ocsp_enabled,
-                                    0.2 if not strict_ocsp_enabled else 1.0,
-                                    kwargs["proxies"],
-                                    self._resolver if isinstance(self._resolver, BaseResolver) else None,
-                                    self._happy_eyeballs,
-                                    cache=self._crl_cache,
-                                )
+                    pass
 
                 kwargs["on_post_connection"] = on_post_connection
 
@@ -1521,19 +1466,7 @@ class AsyncHTTPAdapter(AsyncBaseAdapter):
         :param quic_cache_layer: Caching mutable mapping to remember QUIC capable endpoint.
         :param pool_kwargs: Extra keyword arguments used to initialize the Pool Manager.
         """
-        # save these values for pickling
-        self._pool_connections = connections
-        self._pool_maxsize = maxsize
-        self._pool_block = block
-        self._quic_cache_layer = quic_cache_layer
-
-        self.poolmanager = AsyncPoolManager(
-            num_pools=connections,
-            maxsize=maxsize,
-            block=block,
-            preemptive_quic_cache=quic_cache_layer,
-            **pool_kwargs,
-        )
+        pass
 
     def proxy_manager_for(self, proxy: str, **proxy_kwargs: typing.Any) -> AsyncProxyManager:
         """Return urllib3 AsyncProxyManager for the given proxy.
@@ -1956,9 +1889,7 @@ class AsyncHTTPAdapter(AsyncBaseAdapter):
             extension = async_wrap_extension_for_http(async_load_extension(scheme, implementation=implementation))()
 
         async def early_response_hook(early_response: BaseAsyncHTTPResponse) -> None:
-            nonlocal on_early_response
-            assert on_early_response is not None
-            await on_early_response(self.build_response(request, early_response))
+            pass
 
         try:
             resp_or_promise = await conn.urlopen(  # type: ignore[call-overload,misc]
@@ -2097,52 +2028,7 @@ class AsyncHTTPAdapter(AsyncBaseAdapter):
 
                 async def on_post_connection(conn_info: ConnectionInfo) -> None:
                     """This function will be called by urllib3.future just after establishing the connection."""
-                    nonlocal next_request, kwargs
-
-                    assert next_request is not None
-                    next_request.conn_info = conn_info
-
-                    if next_request.url and next_request.url.startswith("https://") and kwargs["verify"]:
-                        strict_ocsp_enabled: bool = os.environ.get("NIQUESTS_STRICT_OCSP", "0") != "0"
-
-                        if not strict_ocsp_enabled and self._revocation_configuration is not None:
-                            strict_ocsp_enabled = self._revocation_configuration.strict_mode
-
-                        if should_check_ocsp(conn_info, self._revocation_configuration):
-                            try:
-                                from .extensions.revocation._ocsp._async import (
-                                    verify as async_ocsp_verify,
-                                )
-                            except ImportError:
-                                pass
-                            else:
-                                await async_ocsp_verify(
-                                    next_request,
-                                    strict_ocsp_enabled,
-                                    0.2 if not strict_ocsp_enabled else 1.0,
-                                    kwargs["proxies"],
-                                    self._resolver if isinstance(self._resolver, AsyncBaseResolver) else None,
-                                    self._happy_eyeballs,
-                                    cache=self._ocsp_cache,
-                                )
-
-                        if should_check_crl(conn_info, self._revocation_configuration):
-                            try:
-                                from .extensions.revocation._crl._async import (
-                                    verify as async_crl_verify,
-                                )
-                            except ImportError:
-                                pass
-                            else:
-                                await async_crl_verify(
-                                    next_request,
-                                    strict_ocsp_enabled,
-                                    0.2 if not strict_ocsp_enabled else 1.0,
-                                    kwargs["proxies"],
-                                    self._resolver if isinstance(self._resolver, AsyncBaseResolver) else None,
-                                    self._happy_eyeballs,
-                                    cache=self._crl_cache,
-                                )
+                    pass
 
                 kwargs["on_post_connection"] = on_post_connection
 

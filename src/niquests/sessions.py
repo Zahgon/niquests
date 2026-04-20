@@ -1218,72 +1218,7 @@ class Session:
 
         def on_post_connection(conn_info: ConnectionInfo) -> None:
             """This function will be called by urllib3.future just after establishing the connection."""
-            nonlocal ptr_request, request, kwargs
-            ptr_request.conn_info = conn_info
-
-            if ptr_request.url and parse_scheme(ptr_request.url) == "https" and kwargs["verify"]:
-                strict_ocsp_enabled: bool = os.environ.get("NIQUESTS_STRICT_OCSP", "0") != "0"
-
-                if not strict_ocsp_enabled and self._revocation_configuration is not None:
-                    strict_ocsp_enabled = self._revocation_configuration.strict_mode
-
-                if should_check_ocsp(conn_info, self._revocation_configuration):
-                    try:
-                        from .extensions.revocation._ocsp import (
-                            InMemoryRevocationStatus,
-                        )
-                        from .extensions.revocation._ocsp import (
-                            verify as ocsp_verify,
-                        )
-                    except ImportError:
-                        pass
-                    else:
-                        if self._ocsp_cache is None:
-                            self._ocsp_cache = InMemoryRevocationStatus()
-
-                            for adapter in self.adapters.values():
-                                if hasattr(adapter, "_ocsp_cache"):
-                                    adapter._ocsp_cache = self._ocsp_cache
-                        ocsp_verify(
-                            ptr_request,
-                            strict_ocsp_enabled,
-                            0.2 if not strict_ocsp_enabled else 1.0,
-                            kwargs["proxies"],
-                            resolver=self.resolver,
-                            happy_eyeballs=self._happy_eyeballs,
-                            cache=self._ocsp_cache,
-                        )
-
-                if should_check_crl(conn_info, self._revocation_configuration):
-                    try:
-                        from .extensions.revocation._crl import (
-                            InMemoryRevocationList,
-                        )
-                        from .extensions.revocation._crl import (
-                            verify as crl_verify,
-                        )
-                    except ImportError:
-                        pass
-                    else:
-                        if self._crl_cache is None:
-                            self._crl_cache = InMemoryRevocationList()
-
-                            for adapter in self.adapters.values():
-                                if hasattr(adapter, "_crl_cache"):
-                                    adapter._crl_cache = self._crl_cache
-                        crl_verify(
-                            ptr_request,
-                            strict_ocsp_enabled,
-                            0.2 if not strict_ocsp_enabled else 1.0,
-                            kwargs["proxies"],
-                            resolver=self.resolver,
-                            happy_eyeballs=self._happy_eyeballs,
-                            cache=self._crl_cache,
-                        )
-
-            # don't trigger pre_send for redirects
-            if ptr_request == request:
-                dispatch_hook("pre_send", hooks, ptr_request)  # type: ignore[arg-type]
+            pass
 
         def handle_upload_progress(
             total_sent: int,
@@ -1291,18 +1226,7 @@ class Session:
             is_completed: bool,
             any_error: bool,
         ) -> None:
-            nonlocal ptr_request, request, kwargs
-            if ptr_request != request:
-                return
-            if request.upload_progress is None:
-                request.upload_progress = TransferProgress()
-
-            request.upload_progress.total = total_sent
-            request.upload_progress.content_length = content_length
-            request.upload_progress.is_completed = is_completed
-            request.upload_progress.any_error = any_error
-
-            dispatch_hook("on_upload", hooks, request)  # type: ignore[arg-type]
+            pass
 
         def on_early_response(early_response) -> None:
             dispatch_hook("early_response", hooks, early_response)

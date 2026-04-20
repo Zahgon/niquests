@@ -31,7 +31,7 @@ class ThreadASGIWebSocketExtension(WebSocketExtensionFromHTTP):
 
     @property
     def closed(self) -> bool:
-        return self._async_ext.closed
+        pass
 
     def next_payload(self) -> str | bytes | None:
         """Block until the next message arrives from the ASGI WebSocket app."""

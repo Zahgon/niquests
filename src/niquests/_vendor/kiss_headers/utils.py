@@ -309,9 +309,7 @@ def count_leftover_space(content: str) -> int:
     >>> count_leftover_space("  hello    ")
     4
     """
-    if content.endswith(" "):
-        return count_leftover_space(content[:-1]) + 1
-    return 0
+    pass
 
 
 def header_strip(content: str, elem: str) -> str:
@@ -322,44 +320,7 @@ def header_strip(content: str, elem: str) -> str:
     >>> header_strip("text/html; charset=UTF-8;    format=flowed", "charset=UTF-8")
     'text/html; format=flowed'
     """
-    next_semi_colon_index: int | None = None
-
-    try:
-        elem_index: int = content.index(elem)
-    except ValueError:
-        # If the target element in not found within the content, just return the unmodified content.
-        return content
-
-    elem_end_index: int = elem_index + len(elem)
-
-    elem = (" " * count_leftover_space(content[:elem_index])) + elem
-
-    try:
-        next_semi_colon_index = elem_end_index + content[elem_end_index:].index(";")
-    except ValueError:
-        pass
-
-    content = (
-        content.replace(
-            elem
-            + (
-                content[elem_end_index:next_semi_colon_index] + ";"
-                if next_semi_colon_index is not None
-                else ""
-            ),
-            "",
-        )
-        .rstrip(" ")
-        .lstrip(" ")
-    )
-
-    if content.startswith(";"):
-        content = content[1:]
-
-    if content.endswith(";"):
-        content = content[:-1]
-
-    return content
+    pass
 
 
 def is_legal_header_name(name: str) -> bool:

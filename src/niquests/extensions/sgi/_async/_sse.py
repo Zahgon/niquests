@@ -38,12 +38,7 @@ class ASGISSEExtension(AsyncServerSideEventExtensionFromHTTP):
         response_complete = asyncio.Event()
 
         async def receive() -> dict[str, typing.Any]:
-            nonlocal request_complete
-            if request_complete:
-                await response_complete.wait()
-                return {"type": "http.disconnect"}
-            request_complete = True
-            return {"type": "http.request", "body": body, "more_body": False}
+            pass
 
         async def send(message: dict[str, typing.Any]) -> None:
             await self._response_queue.put(message)  # type: ignore[union-attr]
@@ -68,7 +63,7 @@ class ASGISSEExtension(AsyncServerSideEventExtensionFromHTTP):
 
     @property
     def closed(self) -> bool:
-        return self._closed
+        pass
 
     async def next_payload(self, *, raw: bool = False) -> ServerSentEvent | str | None:
         """Read and parse the next SSE event from the ASGI response stream.

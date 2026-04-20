@@ -48,23 +48,16 @@ class AsyncPyodideWebSocketExtension(AsyncWebSocketExtensionFromHTTP):
         # JS→Python callbacks: invoked by the browser event loop, not Python call
         # frames, so coverage cannot trace into them.
         def _onopen(event: typing.Any) -> None:  # Defensive: JS callback
-            if not open_future.done():
-                open_future.set_result(None)
+            pass
 
         def _onerror(event: typing.Any) -> None:  # Defensive: JS callback
-            if not open_future.done():
-                open_future.set_exception(ConnectionError("WebSocket connection failed"))
+            pass
 
         def _onmessage(event: typing.Any) -> None:  # Defensive: JS callback
-            data = event.data
-            if isinstance(data, str):
-                self._queue.put_nowait(data)
-            else:
-                # ArrayBuffer → bytes via Pyodide
-                self._queue.put_nowait(bytes(data.to_py()))
+            pass
 
         def _onclose(event: typing.Any) -> None:  # Defensive: JS callback
-            self._queue.put_nowait(None)
+            pass
 
         for name, fn in [
             ("onopen", _onopen),
@@ -80,7 +73,7 @@ class AsyncPyodideWebSocketExtension(AsyncWebSocketExtensionFromHTTP):
 
     @property
     def closed(self) -> bool:
-        return self._closed
+        pass
 
     async def next_payload(self) -> str | bytes | None:
         """Await the next message from the WebSocket.

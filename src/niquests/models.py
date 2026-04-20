@@ -145,10 +145,7 @@ class TransferProgress:
 
     @property
     def percentage(self) -> float | None:
-        if self.content_length is None:
-            return None
-
-        return round((self.total / self.content_length) * 100.0, 3)
+        pass
 
     def __repr__(self) -> str:
         if self.content_length:
@@ -222,7 +219,7 @@ class Request:
 
     @property
     def oheaders(self) -> Headers:
-        return parse_it(self.headers)
+        pass
 
     def __repr__(self) -> str:
         return f"<Request [{self.method}]>"
@@ -246,12 +243,7 @@ class Request:
         """Deregister a previously registered hook.
         Returns True if the hook existed, False if not.
         """
-
-        try:
-            self.hooks[event].remove(hook)
-            return True
-        except ValueError:
-            return False
+        pass
 
     def prepare(self) -> PreparedRequest:
         """Constructs a :class:`PreparedRequest <PreparedRequest>` for transmission and returns it."""
@@ -324,7 +316,7 @@ class PreparedRequest:
 
     @property
     def oheaders(self) -> Headers:
-        return parse_it(self.headers)
+        pass
 
     def prepare(
         self,
@@ -699,33 +691,12 @@ class PreparedRequest:
         """Deregister a previously registered hook.
         Returns True if the hook existed, False if not.
         """
-
-        try:
-            self.hooks[event].remove(hook)
-            return True
-        except ValueError:
-            return False
+        pass
 
     @property
     def path_url(self) -> str:
         """Build the path URL to use."""
-        assert self.url is not None
-        url = []
-
-        p = urlsplit(self.url)
-
-        path = p.path
-        if not path:
-            path = "/"
-
-        url.append(path)
-
-        query = p.query
-        if query:
-            url.append("?")
-            url.append(query)
-
-        return "".join(url)
+        pass
 
     @staticmethod
     def _encode_params(
@@ -1010,11 +981,7 @@ class Response:
         Otherwise, on unknown protocol, it will be RawExtensionFromHTTP.
         Warning: If you stand in an async inclosure, the type
         will be AsyncWebSocketExtensionFromHTTP or AsyncRawExtensionFromHTTP."""
-        return (
-            self.raw.extension  # type: ignore[return-value]
-            if self.raw is not None and hasattr(self.raw, "extension")
-            else None
-        )
+        pass
 
     @property
     def lazy(self) -> bool:
@@ -1022,11 +989,7 @@ class Response:
         Determine if response isn't received and is actually a placeholder.
         Only significant if request was sent through a multiplexed connection.
         """
-        try:
-            super().__getattribute__("_promise")
-            return True
-        except AttributeError:
-            return False
+        pass
 
     def _gather(self) -> None:
         """internals used for lazy responses. Do not try to access this unless you know what you are doing."""
@@ -1119,26 +1082,19 @@ class Response:
         the status code is between 200 and 400, this will return True. This
         is **not** a check to see if the response code is ``200 OK``.
         """
-        try:
-            self.raise_for_status()
-        except HTTPError:
-            return False
-        return True
+        pass
 
     @property
     def is_redirect(self) -> bool:
         """True if this Response is a well-formed HTTP redirect that could have
         been processed automatically (by :meth:`Session.resolve_redirects`).
         """
-        return "location" in self.headers and self.status_code in REDIRECT_STATI
+        pass
 
     @property
     def is_permanent_redirect(self) -> bool:
         """True if this Response one of the permanent versions of redirect."""
-        return "location" in self.headers and self.status_code in (
-            codes.moved_permanently,  # type: ignore[attr-defined]
-            codes.permanent_redirect,  # type: ignore[attr-defined]
-        )
+        pass
 
     @property
     def next(self) -> PreparedRequest | None:
@@ -1148,16 +1104,12 @@ class Response:
     @property
     def conn_info(self) -> ConnectionInfo | None:
         """Provide context to the established connection that was used to perform the request."""
-        if self.request and hasattr(self.request, "conn_info"):
-            return self.request.conn_info
-        return None
+        pass
 
     @property
     def ocsp_verified(self) -> bool | None:
         """Marker that can inform you of the OCSP verification."""
-        if self.request and hasattr(self.request, "ocsp_verified"):
-            return self.request.ocsp_verified
-        return None
+        pass
 
     @typing.overload
     def iter_content(
@@ -1273,63 +1225,7 @@ class Response:
         We recommend setting chunk_size=-1 (default) to receive chunk as they come
         for performance purposes.
         """
-
-        def generate() -> typing.Generator[bytes, None, None]:
-            assert self.raw is not None
-
-            can_track_progress = hasattr(self.raw, "_fp") and hasattr(self.raw._fp, "data_in_count")
-
-            if can_track_progress and self.download_progress is None:
-                if "content-length" in self.headers:
-                    self.download_progress = TransferProgress()
-                    try:
-                        self.download_progress.content_length = int(self.headers["content-length"])
-                    except ValueError:
-                        pass
-            # Special case for urllib3.
-            if hasattr(self.raw, "stream"):
-                try:
-                    for chunk in self.raw.stream(chunk_size, decode_content=False):
-                        if self.download_progress is not None:
-                            self.download_progress.total = self.raw._fp.data_in_count  # type: ignore[union-attr]
-                        yield chunk
-                except ProtocolError as e:
-                    if self.download_progress is not None:
-                        self.download_progress.any_error = True
-                    raise ChunkedEncodingError(e)
-                except DecodeError as e:
-                    if self.download_progress is not None:
-                        self.download_progress.any_error = True
-                    raise ContentDecodingError(e)
-                except ReadTimeoutError as e:
-                    if self.download_progress is not None:
-                        self.download_progress.any_error = True
-                    raise ConnectionError(e)
-                except SSLError as e:
-                    if self.download_progress is not None:
-                        self.download_progress.any_error = True
-                    raise RequestsSSLError(e)
-            else:
-                # Standard file-like object.
-                while True:
-                    chunk = self.raw.read(chunk_size)
-                    if not chunk:
-                        break
-                    yield chunk
-
-            if self.raw is not None and hasattr(self.raw, "trailers"):
-                self.trailers = CaseInsensitiveDict(self.raw.trailers)
-
-            self._content_consumed = True
-
-        if self._content_consumed and isinstance(self._content, bool):
-            raise StreamConsumedError()
-        elif chunk_size is not None and not isinstance(chunk_size, int):
-            raise TypeError(f"chunk_size must be an int, it is instead a {type(chunk_size)}.")
-        # simulate reading small chunks of the content
-        reused_chunks = iter_slices(self._content or b"", chunk_size)
-
-        return reused_chunks if self._content_consumed else generate()
+        pass
 
     @typing.overload
     def iter_lines(
@@ -1360,34 +1256,7 @@ class Response:
 
         .. note:: This method is not reentrant safe.
         """
-        if delimiter is not None and decode_unicode is False and isinstance(delimiter, str):
-            raise ValueError(
-                "delimiter MUST match the desired output type. e.g. "
-                "if decode_unicode is set to True, delimiter MUST be a str, otherwise we expect a bytes-like variable."
-            )
-
-        pending = None
-
-        for chunk in self.iter_content(  # type: ignore[call-overload]
-            chunk_size=chunk_size, decode_unicode=decode_unicode
-        ):
-            if pending is not None:
-                chunk = pending + chunk
-
-            if delimiter:
-                lines = chunk.split(delimiter)  # type: ignore[arg-type]
-            else:
-                lines = chunk.splitlines()
-
-            if lines and lines[-1] and chunk and lines[-1][-1] == chunk[-1]:
-                pending = lines.pop()
-            else:
-                pending = None
-
-            yield from lines
-
-        if pending is not None:
-            yield pending
+        pass
 
     @property
     def oheaders(self) -> Headers:
@@ -1404,53 +1273,19 @@ class Response:
         >>> r.oheaders.content_type[0]
         'text/html'
         """
-        if self.raw:
-            headers = parse_it(self.raw)
-            headers -= "Set-Cookie"
-            return headers
-        return parse_it(self.headers)
+        pass
 
     @property
     def otrailers(self) -> Headers:
         """
         Retrieve trailers as they were objects. There is no need to parse headers yourself.
         """
-        if self.raw:
-            return parse_it(self.raw.trailers)
-        return parse_it(self.trailers)
+        pass
 
     @property
     def content(self) -> bytes | None:
         """Content of the response, in bytes."""
-
-        if self._content is False:
-            # Read the contents.
-            if self._content_consumed:
-                raise RuntimeError("The content for this response was already consumed")
-
-            if self.status_code == 0 or self.raw is None:
-                self._content = None
-            else:
-                try:
-                    if hasattr(self.raw, "stream"):
-                        self._content = self.raw.read(decode_content=True)  # type: ignore[arg-type]
-                    else:
-                        self._content = self.raw.read()
-                except ProtocolError as e:
-                    raise ChunkedEncodingError(e)
-                except DecodeError as e:
-                    raise ContentDecodingError(e)
-                except ReadTimeoutError as e:
-                    raise ConnectionError(e)
-                except SSLError as e:
-                    raise RequestsSSLError(e)
-
-        self._content_consumed = True
-        if self.raw is not None and hasattr(self.raw, "trailers"):
-            self.trailers = CaseInsensitiveDict(self.raw.trailers)
-        # don't need to release the connection; that's been handled by urllib3
-        # since we exhausted the data.
-        return self._content  # type: ignore[return-value]
+        pass
 
     @property
     def text(self) -> str | None:
@@ -1464,32 +1299,7 @@ class Response:
         non-HTTP knowledge to make a better guess at the encoding, you should
         set ``r.encoding`` appropriately before accessing this property.
         """
-        if not self.content:
-            return ""
-
-        if self.encoding is not None:
-            try:
-                info = codecs.lookup(self.encoding)
-
-                if hasattr(info, "_is_text_encoding") and info._is_text_encoding is False:
-                    return None
-            except LookupError:
-                #: We cannot accept unsupported or nonexistent encoding. Override.
-                self.encoding = None
-
-        # Fallback to auto-detected encoding.
-        if self.encoding is None:
-            encoding_guess = from_bytes(self.content).best()
-
-            if encoding_guess:
-                #: We shall cache this inference.
-                self.encoding = encoding_guess.encoding
-                return str(encoding_guess)
-
-        if self.encoding is None:
-            return None
-
-        return str(self.content, self.encoding, errors="replace")
+        pass
 
     def json(self, **kwargs: typing.Any) -> typing.Any:
         r"""Returns the json-encoded content of a response, if any.
@@ -1545,21 +1355,7 @@ class Response:
     @property
     def links(self):
         """Returns the parsed header links of the response, if any."""
-
-        header = self.headers.get("link")
-
-        resolved_links = {}
-
-        if header:
-            if isinstance(header, bytes):
-                header = header.decode()
-            links = parse_header_links(header)
-
-            for link in links:
-                key = link.get("rel") or link.get("url")
-                resolved_links[key] = link
-
-        return resolved_links
+        pass
 
     @property
     def http_version(self) -> int | None:
@@ -1570,7 +1366,7 @@ class Response:
         - 20 for HTTP/2
         - 30 for HTTP/3
         """
-        return self.raw.version if self.raw else None
+        pass
 
     def raise_for_status(self) -> Response:
         """Raises :class:`HTTPError`, if one occurred."""
@@ -1672,11 +1468,7 @@ class AsyncResponse(Response):
         """Access the I/O after an Upgraded connection. E.g. for a WebSocket handler.
         If the server opened a WebSocket, then the extension will be of type AsyncWebSocketExtensionFromHTTP.
         Otherwise, on unknown protocol, it will be AsyncRawExtensionFromHTTP."""
-        return (
-            self.raw.extension  # type: ignore[return-value]
-            if self.raw is not None and hasattr(self.raw, "extension")
-            else None
-        )
+        pass
 
     def __enter__(self) -> typing.Never:  # type: ignore[override]
         raise NotImplementedError("AsyncResponse support only 'async with'")
@@ -1777,56 +1569,7 @@ class AsyncResponse(Response):
     async def iter_raw(  # type: ignore[override]
         self, chunk_size: int = ITER_CHUNK_SIZE
     ) -> typing.AsyncGenerator[bytes, None]:
-        if self.lazy:
-            await self._gather()
-
-        async def generate() -> typing.AsyncGenerator[
-            bytes,
-            None,
-        ]:
-            assert self.raw is not None
-
-            can_track_progress = hasattr(self.raw, "_fp") and hasattr(self.raw._fp, "data_in_count")
-
-            if can_track_progress and self.download_progress is None:
-                if "content-length" in self.headers:
-                    self.download_progress = TransferProgress()
-                    try:
-                        self.download_progress.content_length = int(self.headers["content-length"])
-                    except ValueError:
-                        pass
-
-            while True:
-                try:
-                    chunk = await self.raw.read(chunk_size, decode_content=False)
-
-                    if self.download_progress is not None:
-                        self.download_progress.total = self.raw._fp.data_in_count  # type: ignore[union-attr]
-                except ProtocolError as e:
-                    raise ChunkedEncodingError(e)
-                except DecodeError as e:
-                    raise ContentDecodingError(e)
-                except ReadTimeoutError as e:
-                    raise ConnectionError(e)
-                except SSLError as e:
-                    raise RequestsSSLError(e)
-
-                if not chunk:
-                    break
-
-                yield chunk
-
-            if self.raw is not None and hasattr(self.raw, "trailers"):
-                self.trailers = CaseInsensitiveDict(self.raw.trailers)
-
-            self._content_consumed = True
-
-        if self._content_consumed and isinstance(self._content, bool):
-            raise StreamConsumedError()
-        elif chunk_size is not None and not isinstance(chunk_size, int):
-            raise TypeError(f"chunk_size must be an int, it is instead a {type(chunk_size)}.")
-
-        return generate()
+        pass
 
     @typing.overload  # type: ignore[override]
     async def iter_lines(
@@ -1851,101 +1594,15 @@ class AsyncResponse(Response):
         decode_unicode: bool = False,
         delimiter: str | bytes | None = None,
     ) -> typing.AsyncGenerator[bytes | str, None]:
-        if delimiter is not None and decode_unicode is False and isinstance(delimiter, str):
-            raise ValueError(
-                "delimiter MUST match the desired output type. e.g. "
-                "if decode_unicode is set to True, delimiter MUST be a str, otherwise we expect a bytes-like variable."
-            )
-
-        pending = None
-
-        async for chunk in await self.iter_content(  # type: ignore[call-overload]
-            chunk_size=chunk_size, decode_unicode=decode_unicode
-        ):
-            if pending is not None:
-                chunk = pending + chunk
-
-            if delimiter:
-                lines = chunk.split(delimiter)  # type: ignore[arg-type]
-            else:
-                lines = chunk.splitlines()
-
-            if lines and lines[-1] and chunk and lines[-1][-1] == chunk[-1]:
-                pending = lines.pop()
-            else:
-                pending = None
-
-            for line in lines:
-                yield line
-
-        if pending is not None:
-            yield pending
+        pass
 
     @property
     async def content(self) -> bytes | None:  # type: ignore[override]
-        if self.lazy:
-            await self._gather()
-
-        if self._content is False:
-            # Read the contents.
-            if self._content_consumed:
-                raise RuntimeError("The content for this response was already consumed")
-
-            if self.status_code == 0 or self.raw is None:
-                self._content = None
-            else:
-                try:
-                    if isinstance(self.raw, BaseAsyncHTTPResponse):
-                        self._content = await self.raw.read(decode_content=True)  # type: ignore[arg-type]
-                    else:
-                        raise OSError
-                except ProtocolError as e:
-                    raise ChunkedEncodingError(e)
-                except DecodeError as e:
-                    raise ContentDecodingError(e)
-                except ReadTimeoutError as e:
-                    raise ConnectionError(e)
-                except SSLError as e:
-                    raise RequestsSSLError(e)
-
-        if self.raw is not None and hasattr(self.raw, "trailers"):
-            self.trailers = CaseInsensitiveDict(self.raw.trailers)
-
-        self._content_consumed = True
-        # don't need to release the connection; that's been handled by urllib3
-        # since we exhausted the data.
-        return self._content  # type: ignore[return-value]
+        pass
 
     @property
     async def text(self) -> str | None:  # type: ignore[override]
-        content = await self.content
-
-        if not content:
-            return ""
-
-        if self.encoding is not None:
-            try:
-                info = codecs.lookup(self.encoding)
-
-                if hasattr(info, "_is_text_encoding") and info._is_text_encoding is False:
-                    return None
-            except LookupError:
-                #: We cannot accept unsupported or nonexistent encoding. Override.
-                self.encoding = None
-
-        # Fallback to auto-detected encoding.
-        if self.encoding is None:
-            encoding_guess = from_bytes(content).best()
-
-            if encoding_guess:
-                #: We shall cache this inference.
-                self.encoding = encoding_guess.encoding
-                return str(encoding_guess)
-
-        if self.encoding is None:
-            return None
-
-        return str(content, self.encoding, errors="replace")
+        pass
 
     async def json(self, **kwargs: typing.Any) -> typing.Any:  # type: ignore[override]
         content = await self.content

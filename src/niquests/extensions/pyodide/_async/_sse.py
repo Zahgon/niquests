@@ -40,7 +40,7 @@ class AsyncPyodideSSEExtension(AsyncServerSideEventExtensionFromHTTP):
 
     @property
     def closed(self) -> bool:
-        return self._closed
+        pass
 
     async def _read_chunk(self) -> str | None:
         """Read the next chunk from the ReadableStream."""

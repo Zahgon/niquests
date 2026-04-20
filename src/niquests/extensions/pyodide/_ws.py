@@ -53,8 +53,7 @@ class PyodideWebSocketExtension(WebSocketExtensionFromHTTP):
         }
 
         def _open_executor(resolve: typing.Any, reject: typing.Any) -> None:
-            _open_state["resolve"] = resolve
-            _open_state["reject"] = reject
+            pass
 
         exec_proxy = create_proxy(_open_executor)
         open_promise = Promise.new(exec_proxy)
@@ -63,43 +62,16 @@ class PyodideWebSocketExtension(WebSocketExtensionFromHTTP):
         # JS→Python callbacks: invoked by the browser event loop, not Python call
         # frames, so coverage cannot trace into them.
         def _onopen(event: typing.Any) -> None:  # Defensive: JS callback
-            r = _open_state["resolve"]
-            if r is not None:
-                _open_state["resolve"] = None
-                _open_state["reject"] = None
-                r()
+            pass
 
         def _onerror(event: typing.Any) -> None:  # Defensive: JS callback
-            r = _open_state["reject"]
-            if r is not None:
-                _open_state["resolve"] = None
-                _open_state["reject"] = None
-                r("WebSocket connection failed")
+            pass
 
         def _onmessage(event: typing.Any) -> None:  # Defensive: JS callback
-            data = event.data
-            if isinstance(data, str):
-                msg: str | bytes = data
-            else:
-                # ArrayBuffer → bytes via Pyodide
-                msg = bytes(data.to_py())
-
-            if self._waiting_resolve is not None:
-                self._last_msg = msg
-                r = self._waiting_resolve
-                self._waiting_resolve = None
-                r()
-            else:
-                self._pending.append(msg)
+            pass
 
         def _onclose(event: typing.Any) -> None:  # Defensive: JS callback
-            if self._waiting_resolve is not None:
-                self._last_msg = None
-                r = self._waiting_resolve
-                self._waiting_resolve = None
-                r()
-            else:
-                self._pending.append(None)
+            pass
 
         # Create proxies so JS can call these Python functions
         for name, fn in [
@@ -120,7 +92,7 @@ class PyodideWebSocketExtension(WebSocketExtensionFromHTTP):
 
     @property
     def closed(self) -> bool:
-        return self._closed
+        pass
 
     def next_payload(self) -> str | bytes | None:
         """Block (via JSPI) until the next message arrives.
@@ -137,7 +109,7 @@ class PyodideWebSocketExtension(WebSocketExtensionFromHTTP):
 
         # Wait for the next message via a JS Promise
         def _executor(resolve: typing.Any, reject: typing.Any) -> None:
-            self._waiting_resolve = resolve
+            pass
 
         exec_proxy = create_proxy(_executor)
         promise = Promise.new(exec_proxy)

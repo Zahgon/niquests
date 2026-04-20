@@ -26,26 +26,14 @@ except ImportError:
     @lru_cache(maxsize=64)
     def _lower_wrapper(string: str) -> str:
         """backport"""
-        return string.lower()
+        pass
 
 
 from .exceptions import InvalidHeader
 
 
 def _ensure_str_or_bytes(key: typing.Any, value: typing.Any) -> tuple[bytes | str, bytes | str]:
-    if isinstance(key, (bytes, str)) and isinstance(value, (bytes, str)):
-        return key, value
-    if isinstance(
-        value,
-        (
-            float,
-            int,
-        ),
-    ):
-        value = str(value)
-    if isinstance(key, (bytes, str)) is False or (value is not None and isinstance(value, (bytes, str)) is False):
-        raise InvalidHeader(f"Illegal header name or value {key}")
-    return key, value
+    pass
 
 
 _T = typing.TypeVar("_T")
@@ -137,7 +125,7 @@ class CaseInsensitiveDict(MutableMapping):
 
     def lower_items(self) -> typing.Iterator[tuple[bytes | str, bytes | str]]:
         """Like iteritems(), but with all lowercase keys."""
-        return ((lowerkey, keyval[1]) for (lowerkey, keyval) in self._store.items())
+        pass
 
     def items(self):
         for k in self._store:
@@ -234,18 +222,10 @@ class QuicSharedCache(SharableLimitedDict):
         self._exclusion_store: typing.MutableMapping[typing.Any, typing.Any] = {}
 
     def add_domain(self, host: str, port: int | None = None, alt_port: int | None = None) -> None:
-        if port is None:
-            port = 443
-        if alt_port is None:
-            alt_port = port
-        self[(host, port)] = (host, alt_port)
+        pass
 
     def exclude_domain(self, host: str, port: int | None = None, alt_port: int | None = None):
-        if port is None:
-            port = 443
-        if alt_port is None:
-            alt_port = port
-        self._exclusion_store[(host, port)] = (host, alt_port)
+        pass
 
     def __setitem__(self, key, value):
         with self._lock:

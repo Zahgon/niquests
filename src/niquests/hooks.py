@@ -170,27 +170,27 @@ class LifeCycleHook(_BaseLifeCycleHook[_HV]):
 
     def pre_request(self, prepared_request: PreparedRequest, **kwargs: typing.Any) -> PreparedRequest | None:
         """The prepared request just got built. You may alter it prior to be sent through HTTP."""
-        return None
+        pass
 
     def pre_send(self, prepared_request: PreparedRequest, **kwargs: typing.Any) -> None:
         """The prepared request got his ConnectionInfo injected. This event is triggered just
         after picking a live connection from the pool. You may not alter the prepared request."""
-        return None
+        pass
 
     def on_upload(self, prepared_request: PreparedRequest, **kwargs: typing.Any) -> None:
         """Permit to monitor the upload progress of passed body. This event is triggered each time
         a block of data is transmitted to the remote peer. Use this hook carefully as
         it may impact the overall performance. You may not alter the prepared request."""
-        return None
+        pass
 
     def early_response(self, response: Response, **kwargs: typing.Any) -> None:
         """An early response caught before receiving the final Response for a given Request.
         Like but not limited to 103 Early Hints."""
-        return None
+        pass
 
     def response(self, response: Response, **kwargs: typing.Any) -> Response | None:
         """The response generated from a Request. You may alter the response at will."""
-        return None
+        pass
 
 
 class AsyncLifeCycleHook(_BaseLifeCycleHook[_HV]):
@@ -212,27 +212,27 @@ class AsyncLifeCycleHook(_BaseLifeCycleHook[_HV]):
 
     async def pre_request(self, prepared_request: PreparedRequest, **kwargs: typing.Any) -> PreparedRequest | None:
         """The prepared request just got built. You may alter it prior to be sent through HTTP."""
-        return None
+        pass
 
     async def pre_send(self, prepared_request: PreparedRequest, **kwargs: typing.Any) -> None:
         """The prepared request got his ConnectionInfo injected. This event is triggered just
         after picking a live connection from the pool. You may not alter the prepared request."""
-        return None
+        pass
 
     async def on_upload(self, prepared_request: PreparedRequest, **kwargs: typing.Any) -> None:
         """Permit to monitor the upload progress of passed body. This event is triggered each time
         a block of data is transmitted to the remote peer. Use this hook carefully as
         it may impact the overall performance. You may not alter the prepared request."""
-        return None
+        pass
 
     async def early_response(self, response: Response, **kwargs: typing.Any) -> None:
         """An early response caught before receiving the final Response for a given Request.
         Like but not limited to 103 Early Hints."""
-        return None
+        pass
 
     async def response(self, response: Response, **kwargs: typing.Any) -> Response | None:
         """The response generated from a Request. You may alter the response at will."""
-        return None
+        pass
 
 
 class _LeakyBucketMixin:
@@ -243,23 +243,15 @@ class _LeakyBucketMixin:
     last_request: float | None
 
     def _init_leaky_bucket(self, rate: float) -> None:
-        self.rate = rate
-        self.interval = 1.0 / rate
-        self.last_request = None
+        pass
 
     def _compute_wait(self) -> float:
         """Compute wait time and update state. Returns wait time (may be <= 0)."""
-        now = time.monotonic()
-        if self.last_request is not None:
-            elapsed = now - self.last_request
-            wait_time = self.interval - elapsed
-        else:
-            wait_time = 0.0
-        return wait_time
+        pass
 
     def _record_request(self) -> None:
         """Record that a request was made."""
-        self.last_request = time.monotonic()
+        pass
 
 
 class _TokenBucketMixin:
@@ -271,35 +263,15 @@ class _TokenBucketMixin:
     last_update: float
 
     def _init_token_bucket(self, rate: float, capacity: float | None) -> None:
-        self.rate = rate
-        self.capacity = capacity if capacity is not None else rate
-        self.tokens = self.capacity
-        self.last_update = time.monotonic()
+        pass
 
     def _acquire_token(self) -> float | None:
         """Replenish tokens and try to acquire one. Returns wait time if needed, None otherwise."""
-        now = time.monotonic()
-        elapsed = now - self.last_update
-        self.tokens = min(self.capacity, self.tokens + elapsed * self.rate)
-        self.last_update = now
-
-        if self.tokens >= 1.0:
-            self.tokens -= 1.0
-            return None
-        else:
-            # Don't update last_update here; let _post_wait handle it
-            wait_time = (1.0 - self.tokens) / self.rate
-            return wait_time
+        pass
 
     def _post_wait(self) -> None:
         """Called after waiting to consume the token."""
-        now = time.monotonic()
-        elapsed = now - self.last_update
-        # Replenish tokens accumulated during the wait
-        self.tokens = min(self.capacity, self.tokens + elapsed * self.rate)
-        self.last_update = now
-        # Now consume the token
-        self.tokens -= 1.0
+        pass
 
 
 class LeakyBucketLimiter(_LeakyBucketMixin, LifeCycleHook):
@@ -327,12 +299,7 @@ class LeakyBucketLimiter(_LeakyBucketMixin, LifeCycleHook):
 
     def pre_request(self, prepared_request: PreparedRequest, **kwargs: typing.Any) -> PreparedRequest | None:
         """Wait if needed to maintain the rate limit."""
-        with self._lock:
-            wait_time = self._compute_wait()
-            if wait_time > 0:
-                time.sleep(wait_time)
-            self._record_request()
-        return None
+        pass
 
 
 class AsyncLeakyBucketLimiter(_LeakyBucketMixin, AsyncLifeCycleHook):
@@ -360,12 +327,7 @@ class AsyncLeakyBucketLimiter(_LeakyBucketMixin, AsyncLifeCycleHook):
 
     async def pre_request(self, prepared_request: PreparedRequest, **kwargs: typing.Any) -> PreparedRequest | None:
         """Wait if needed to maintain the rate limit."""
-        async with self._lock:
-            wait_time = self._compute_wait()
-            if wait_time > 0:
-                await asyncio.sleep(wait_time)
-            self._record_request()
-        return None
+        pass
 
 
 class TokenBucketLimiter(_TokenBucketMixin, LifeCycleHook):
@@ -394,12 +356,7 @@ class TokenBucketLimiter(_TokenBucketMixin, LifeCycleHook):
 
     def pre_request(self, prepared_request: PreparedRequest, **kwargs: typing.Any) -> PreparedRequest | None:
         """Wait until a token is available, then consume it."""
-        with self._lock:
-            wait_time = self._acquire_token()
-            if wait_time is not None:
-                time.sleep(wait_time)
-                self._post_wait()
-        return None
+        pass
 
 
 class AsyncTokenBucketLimiter(_TokenBucketMixin, AsyncLifeCycleHook):
@@ -428,9 +385,4 @@ class AsyncTokenBucketLimiter(_TokenBucketMixin, AsyncLifeCycleHook):
 
     async def pre_request(self, prepared_request: PreparedRequest, **kwargs: typing.Any) -> PreparedRequest | None:
         """Wait until a token is available, then consume it."""
-        async with self._lock:
-            wait_time = self._acquire_token()
-            if wait_time is not None:
-                await asyncio.sleep(wait_time)
-                self._post_wait()
-        return None
+        pass

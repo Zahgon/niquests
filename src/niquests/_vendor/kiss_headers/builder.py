@@ -118,19 +118,11 @@ class ContentSecurityPolicy(CustomHeader):
 
     def get_policies_names(self) -> list[str]:
         """Fetch a list of policy name set in content."""
-        return [member.split(" ")[0] for member in self.attrs]
+        pass
 
     def get_policy_args(self, policy_name: str) -> list[str] | None:
         """Retrieve given arguments for a policy."""
-        policy_name = policy_name.lower()
-
-        for member in self.attrs:
-            parts: list[str] = member.split(" ")
-
-            if parts[0].lower() == policy_name:
-                return parts[1:]
-
-        return None
+        pass
 
 
 class Accept(CustomHeader):
@@ -179,14 +171,11 @@ class Accept(CustomHeader):
 
     def get_mime(self) -> str | None:
         """Return defined mime in current accept header."""
-        for el in self.attrs:
-            if "/" in el:
-                return el
-        return None
+        pass
 
     def get_qualifier(self, _default: float | None = 1.0) -> float | None:
         """Return defined qualifier for specified mime. If not set, output 1.0."""
-        return float(str(self["q"])) if self.has("q") else _default
+        pass
 
 
 class ContentType(CustomHeader):
@@ -240,14 +229,11 @@ class ContentType(CustomHeader):
 
     def get_mime(self) -> str | None:
         """Return defined mime in content type."""
-        for el in self.attrs:
-            if "/" in el:
-                return el
-        return None
+        pass
 
     def get_charset(self, _default: str | None = "ISO-8859-1") -> str | None:
         """Extract defined charset, if not present will return 'ISO-8859-1' by default."""
-        return str(self["charset"]) if self.has("charset") else _default
+        pass
 
 
 class XContentTypeOptions(CustomHeader):
@@ -335,22 +321,11 @@ class ContentDisposition(CustomHeader):
 
     def get_disposition(self) -> str | None:
         """Extract set disposition from Content-Disposition"""
-        for attr in self.attrs:
-            if attr.lower() in ["attachment", "inline", "form-data"]:
-                return attr
-
-        return None
+        pass
 
     def get_filename_decoded(self) -> str | None:
         """Retrieve and decode if necessary the associated filename."""
-        if "filename*" in self:
-            try:
-                encoding, encoded_filename = tuple(str(self["filename*"]).split("''"))
-                return url_unquote(encoded_filename, encoding)
-            except ValueError:
-                pass
-
-        return str(self["filename"]) if "filename" in self else None
+        pass
 
 
 class Authorization(CustomHeader):
@@ -395,11 +370,11 @@ class Authorization(CustomHeader):
 
     def get_auth_type(self) -> str:
         """Return the auth type used in Authorization."""
-        return self.content.split(" ", maxsplit=1)[0]
+        pass
 
     def get_credentials(self) -> str:
         """Output the credentials."""
-        return self.content.split(" ", maxsplit=1)[1]
+        pass
 
 
 class BasicAuthorization(Authorization):
@@ -440,18 +415,13 @@ class BasicAuthorization(Authorization):
 
     def get_credentials(self, __default_charset: str = "latin1") -> str:
         """Decode base64 encoded credentials from Authorization header."""
-        if self.get_auth_type().lower() != "basic":
-            raise ValueError(  # pragma: no cover
-                f"Only Authorization using Basic method is supported by BasicAuthorization. Given '{self.get_auth_type()}'."
-            )
-
-        return b64decode(super().get_credentials()).decode(__default_charset)
+        pass
 
     def get_username_password(
         self, __default_charset: str = "latin1"
     ) -> tuple[str, ...]:
         """Extract username and password as a tuple from Basic Authorization."""
-        return tuple(self.get_credentials(__default_charset).split(":", maxsplit=1))
+        pass
 
 
 class ProxyAuthorization(Authorization):
@@ -544,7 +514,7 @@ class Date(CustomHeader):
 
     def get_datetime(self) -> datetime:
         """Parse and return a datetime according to content."""
-        return utils.parsedate_to_datetime(str(self))
+        pass
 
 
 class CrossOriginResourcePolicy(CustomHeader):
@@ -639,17 +609,13 @@ class Cookie(CustomHeader):
 
     def get_cookies_names(self) -> list[str]:
         """Retrieve all defined cookie names from Cookie header."""
-        return self.attrs
+        pass
 
     def get_cookie_value(
         self, cookie_name: str, __default: str | None = None
     ) -> str | None:
         """Retrieve associated value with a given cookie name."""
-        return (
-            str(self[cookie_name]).replace('\\"', "")
-            if cookie_name in self
-            else __default
-        )
+        pass
 
 
 class SetCookie(CustomHeader):
@@ -721,31 +687,27 @@ class SetCookie(CustomHeader):
 
     def is_http_only(self) -> bool:
         """Determine if the cookie can only be accessed by the browser."""
-        return "HttpOnly" in self
+        pass
 
     def is_secure(self) -> bool:
         """Determine if the cookie is TLS/SSL only."""
-        return "Secure" in self
+        pass
 
     def get_expire(self) -> datetime | None:
         """Retrieve the parsed expiration date."""
-        return (
-            utils.parsedate_to_datetime(str(self["expires"]))
-            if self.has("expires")
-            else None
-        )
+        pass
 
     def get_max_age(self) -> int | None:
         """Getting the max-age value as an integer if set."""
-        return int(str(self["max-age"])) if "max-age" in self else None
+        pass
 
     def get_cookie_name(self) -> str:
         """Extract the cookie name."""
-        return self.attrs[0]
+        pass
 
     def get_cookie_value(self) -> str:
         """Extract the cookie value."""
-        return str(self[self.get_cookie_name()]).replace('\\"', "")
+        pass
 
 
 class StrictTransportSecurity(CustomHeader):
@@ -783,15 +745,15 @@ class StrictTransportSecurity(CustomHeader):
 
     def does_includesubdomains(self) -> bool:
         """Verify if this rule applies to all of the site's subdomains."""
-        return "includeSubDomains" in self
+        pass
 
     def should_preload(self) -> bool:
         """Verify if Preloading Strict Transport Security should be set."""
-        return "preload" in self
+        pass
 
     def get_max_age(self) -> int | None:
         """Get the time, in seconds, if set, that the browser should remember."""
-        return int(str(self["max-age"])) if self.has("max-age") else None
+        pass
 
 
 class UpgradeInsecureRequests(CustomHeader):
@@ -886,7 +848,7 @@ class AcceptEncoding(TransferEncoding):
 
     def get_qualifier(self, _default: float | None = 1.0) -> float | None:
         """Return defined qualifier for specified encoding. If not set, output 1.0."""
-        return float(str(self["q"])) if self.has("q") else _default
+        pass
 
 
 class Dnt(CustomHeader):
@@ -956,23 +918,23 @@ class AltSvc(CustomHeader):
 
     def get_protocol_id(self) -> str:
         """Get the ALPN protocol identifier."""
-        return self.attrs[0]
+        pass
 
     def get_alt_authority(self) -> str:
         """Extract the alternative authority which consists of an optional host override, a colon, and a mandatory port number."""
-        return str(self[self.get_protocol_id()])
+        pass
 
     def get_max_age(self) -> int | None:
         """Output the number of seconds for which the alternative service is considered fresh. None if undefined."""
-        return int(str(self["ma"])) if "ma" in self else None
+        pass
 
     def get_versions(self) -> list[str] | None:
         """May return, if available, a list of versions of the ALPN protocol identifier."""
-        return str(self["v"]).split(",") if "v" in self else None
+        pass
 
     def should_persist(self) -> bool | None:
         """Verify if the entry should not be deleted through network configuration changes. None if no indication."""
-        return str(self["persist"]) == "1" if "persist" in self else None
+        pass
 
 
 class Forwarded(CustomHeader):
@@ -1118,7 +1080,7 @@ class AcceptLanguage(CustomHeader):
 
     def get_qualifier(self, _default: float | None = 1.0) -> float | None:
         """Return defined qualifier for specified language. If not set, output 1.0."""
-        return float(str(self["q"])) if self.has("q") else _default
+        pass
 
 
 class Etag(CustomHeader):
@@ -1246,25 +1208,11 @@ class WwwAuthenticate(CustomHeader):
 
     def get_auth_type(self) -> str | None:
         """Retrieve given authentication method if defined."""
-        parts: list[str] = header_content_split(str(self), " ")
-
-        if len(parts) >= 1 and "=" not in parts:
-            return parts[0]
-
-        return None
+        pass
 
     def get_challenge(self) -> tuple[str, str]:
         """Output a tuple containing the challenge and the associated value. Raises :ValueError:"""
-        parts: list[str] = header_content_split(str(self), " ")
-
-        for part in parts:
-            if "=" in part:
-                challenge, value = tuple(part.split("=", maxsplit=1))
-                return challenge, unquote(value)
-
-        raise ValueError(  # pragma: no cover
-            "WwwAuthenticate header does not seems to contain a valid content. No challenge detected."
-        )
+        pass
 
 
 class XDnsPrefetchControl(CustomHeader):
@@ -1365,20 +1313,19 @@ class ContentRange(CustomHeader):
 
     def get_unit(self) -> str:
         """Retrieve the unit in which ranges is specified."""
-        return self.unpack()[0]
+        pass
 
     def get_start(self) -> int:
         """Get the beginning of the request range."""
-        return int(self.unpack()[1])
+        pass
 
     def get_end(self) -> int:
         """Get the end of the requested range."""
-        return int(self.unpack()[2])
+        pass
 
     def get_size(self) -> str | int:
         """Get the total size of the document (or '*' if unknown)."""
-        size: str = self.unpack()[3]
-        return int(size) if size.isdigit() else size
+        pass
 
 
 class CacheControl(CustomHeader):

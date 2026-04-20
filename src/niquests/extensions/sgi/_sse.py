@@ -26,7 +26,7 @@ class WSGISSEExtension(ServerSideEventExtensionFromHTTP):
 
     @property
     def closed(self) -> bool:
-        return self._closed
+        pass
 
     def next_payload(self, *, raw: bool = False) -> ServerSentEvent | str | None:
         """Read and parse the next SSE event from the WSGI response.
@@ -140,7 +140,7 @@ class ThreadASGISSEExtension(ServerSideEventExtensionFromHTTP):
 
     @property
     def closed(self) -> bool:
-        return self._async_ext.closed
+        pass
 
     def next_payload(self, *, raw: bool = False) -> ServerSentEvent | str | None:
         """Block until the next SSE event arrives from the ASGI app."""

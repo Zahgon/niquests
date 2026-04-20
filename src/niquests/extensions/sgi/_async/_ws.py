@@ -29,7 +29,7 @@ class ASGIWebSocketExtension(AsyncWebSocketExtensionFromHTTP):
         """Start the ASGI app task and perform the WebSocket handshake."""
 
         async def receive() -> dict[str, typing.Any]:
-            return await self._app_receive_queue.get()
+            pass
 
         async def send(message: dict[str, typing.Any]) -> None:
             await self._app_send_queue.put(message)
@@ -57,7 +57,7 @@ class ASGIWebSocketExtension(AsyncWebSocketExtensionFromHTTP):
 
     @property
     def closed(self) -> bool:
-        return self._closed
+        pass
 
     async def next_payload(self) -> str | bytes | None:
         """Await the next message from the ASGI WebSocket app.
